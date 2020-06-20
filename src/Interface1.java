@@ -14,6 +14,7 @@ public class Interface1 extends Application {
         primaryStage.setScene(new Scene(initInterface(), 640, 480));
 //        primaryStage.setScene(new Scene(initInterface()));
         primaryStage.show();
+        //Comment for GIT changes :)
     }
 
     private VBox initInterface() {
