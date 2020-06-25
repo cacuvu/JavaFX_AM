@@ -1,10 +1,9 @@
 import javafx.application.Application;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
+import javafx.scene.image.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -12,10 +11,16 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Scanner;
 
 public class ImgToPGM extends Application {
 
@@ -34,24 +39,30 @@ public class ImgToPGM extends Application {
         FileChooser fileChooser = new FileChooser();
         Text text1 = new Text("Convert to .pgm format");
         Button b = new Button("Choose image");
-        ImageView imgView = new ImageView();
-
+        Text text2 = new Text("Convert .pgm image to .png format");
+        Button b2 = new Button("Choose image");
 
         b.setOnAction(e -> {
             File selectedFile = fileChooser.showOpenDialog(myStage);
             vbMain.getChildren().addAll(getFileName(selectedFile)); // GET TEXT FOR LABEL FROM FILE NAME
 
             try {
-                Objects.requireNonNull(convertImage(selectedFile)).saveTo(selectedFile.getName() + ".pgm"); // CONVERT CHOOSEN IMAGE TO PGM FORMAT
+                Objects.requireNonNull(convertImageToPGM(selectedFile)).saveTo(selectedFile.getName() + ".pgm"); // CONVERT CHOOSEN IMAGE TO PGM FORMAT
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        });
 
+        b2.setOnAction(e -> {
+            File selectedFile = fileChooser.showOpenDialog(myStage);
+            vbMain.getChildren().addAll(getFileName(selectedFile));
 
+            convertPGMToPNG(selectedFile, "png"); // CONVERT PGM IMAGE TO PNG. В условии не сказано какой нужен формат. Пользователь его выбрать сам не может, но я оставил в функции поле для его ввода(не знаю зачем).
+            //В наилучшем варианте нужно добавить ввод формата для пользователя, но я очень устал.
         });
 
 
-        vbMain.getChildren().addAll(text1, b);
+        vbMain.getChildren().addAll(text1, b, text2, b2);
         return vbMain;
     }
 
@@ -60,7 +71,7 @@ public class ImgToPGM extends Application {
         return new Label(myfile.getName());
     }
 
-    private PGMImage convertImage(File myfile) {
+    private PGMImage convertImageToPGM(File myfile) {
         try {
             FileInputStream chosenImg = new FileInputStream(myfile);
             Image myImg = new Image(chosenImg); //, 512, 512, true, false); --- COMPRESS IMAGE
@@ -85,7 +96,35 @@ public class ImgToPGM extends Application {
         return null;
     }
 
+    private void convertPGMToPNG(File myfile, String format) {
+        try {
+            Path path = Path.of(myfile.getName());
+            Scanner sc = new Scanner(path, StandardCharsets.UTF_8);
 
+            sc.next();
+            int width = Integer.parseInt(sc.next());
+            int height = Integer.parseInt(sc.next());
+            int grayBr = Integer.parseInt(sc.next());
+
+            WritableImage newImage = new WritableImage(width, height);
+            PixelWriter pw = newImage.getPixelWriter();
+
+            for (int i = 0; i < height; i++) {
+                for (int j = 0; j < width; j++) {
+                    pw.setColor(j, i, Color.gray((double)Integer.parseInt(sc.next())/grayBr));
+                }
+            }
+
+            File out = new File(String.valueOf("output.png"));
+            BufferedImage bimg = SwingFXUtils.fromFXImage(newImage, null);
+            ImageIO.write(bimg, format, out);
+
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
 
 
 
