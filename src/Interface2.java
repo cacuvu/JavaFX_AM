@@ -54,6 +54,8 @@ public class Interface2 extends Application {
 
         hb.getChildren().addAll(vbLeft, vbRight);
 
+        //проверка к экзамену!
+
 
 
 
